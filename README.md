@@ -2,6 +2,10 @@
 
 Roman is a custom command-line interface (CLI) written in Python using the Tkinter library for the GUI. It provides users with a familiar command-line environment while offering additional functionalities and custom commands.
 
+
+## Important!
+
+if you REALLY wish to use Roman, please run `pip3 install -r requirements.txt` in your console so the libraries for Roman to run are downloaded.
 ## Features
 
 - Basic command execution: Roman supports common command-line operations such as running applications, navigating directories, listing files, creating directories, removing files/directories, etc.
