@@ -7,6 +7,7 @@ from datetime import datetime
 import shutil
 from tkinter import simpledialog
 from custom_commands import CustomCommandManager as ccm
+import paramiko
 
 class CommandConsole:
     def __init__(self, root):
@@ -191,6 +192,25 @@ class CommandConsole:
     def close_window(self):
         self.root.destroy()
 
+    def execute_remote_command(self, host, username, password, command):
+        try:
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(host, username=username, password=password)
+            
+            stdin, stdout, stderr = client.exec_command(command)
+            output = stdout.read().decode()
+            
+            client.close()
+            
+            return output
+        except paramiko.ssh_exception.AuthenticationException:
+            return "Error: Authentication failed. Check your username and password."
+        except paramiko.ssh_exception.SSHException:
+            return "Error: Failed to establish an SSH connection to the remote host."
+        except Exception as e:
+            return f"Error: {str(e)}"
+
     def handle_command(self, event):
         command = self.input_entry.get()
         self.input_entry.delete(0, tk.END)
@@ -231,16 +251,16 @@ class CommandConsole:
 hello           print hello world statment
 exit            exit roman
 help            print commands and their functions
-custom          use a custom command [custom (custom command name)]
-start           start a application [start (app name)]
-kill            kill a proccess [kill (app name)]
-echo            print a statment [echo (your statment)]
-cd              change the current working directory [cd (directory)]
+custom          use a custom command [custom <custom command name>]
+start           start a application [start <app name>]
+kill            kill a proccess [kill <app name>]
+echo            print a statment [echo <your statment>]
+cd              change the current working directory [cd <directory>]
 cwd             print current working directory
 ls              list files in current working directory
 mkdir           make a new directory
 rm              remove a file or directory
-py              start a python app [py (.py file)]
+py              start a python app [py <.py file>]
 cp              copy a file or directory
 mv              move a file or directory
 rn              rename a file or directory 
@@ -253,6 +273,7 @@ cu              print the username of current user
 cls             clear the output box
 tasklist        print list of current running proccess
 sysinf          print system information
+remote          preform an action on a host [remote <host> <username> <password> <command>]
 shutdown        shutdown or restart the computer
 
  #######################
@@ -438,6 +459,17 @@ Will this be compatible with functions?
             
             else:
                 return "Shutdown command not supported on this platform."
+            
+        elif command.lower().startswith("remote "):
+            try:
+                # Parse the command for remote execution
+                _, host, username, password, command_to_execute = command.split(maxsplit=4)
+                
+                # Call the execute_remote_command function to run the command remotely
+                output = self.execute_remote_command(host, username, password, command_to_execute)
+                return output
+            except Exception as e:
+                return f"Error: {str(e)}"
 
         #! all commands and custom commands end here. no further. ( if you want to manualy )
         else:
